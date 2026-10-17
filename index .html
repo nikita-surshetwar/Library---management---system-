@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Library Management System</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #eef2f7;
+  color: #222;
+}
+
+header {
+  background: #243b64;
+  color: white;
+  text-align: center;
+  padding: 22px 10px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 25px;
+}
+
+nav {
+  background: #172947;
+  padding: 12px;
+  text-align: center;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  margin: 8px;
+  display: inline-block;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 15px;
+}
+
+.card {
+  background: white;
+  margin: 15px 0;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #ccc;
+}
+
+h2 {
+  color: #243b64;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 7px 0;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+}
+
+button {
+  background: #243b64;
+  color: white;
+  padding: 11px 15px;
+  border: none;
+  border-radius: 6px;
+  margin: 5px 0;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #4268a5;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 9px 5px;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+th {
+  background: #243b64;
+  color: white;
+}
+
+.status {
+  font-weight: bold;
+}
+
+footer {
+  background: #172947;
+  color: white;
+  text-align: center;
+  padding: 15px;
+  margin-top: 20px;
+}
+
+@media(max-width: 500px) {
+  header h1 {
+    font-size: 21px;
+  }
+
+  th, td {
+    font-size: 12px;
+  }
+
+  nav a {
+    font-size: 13px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>📚 Library Management System</h1>
+  <p>Using Stack and Queue</p>
+</header>
+
+<nav>
+  <a href="#home">Home</a>
+  <a href="#add">Add Book</a>
+  <a href="#books">Book List</a>
+  <a href="#stack">Stack</a>
+  <a href="#queue">Queue</a>
+</nav>
+
+<div class="container">
+
+<section class="card" id="home">
+  <h2>Welcome to Our Library</h2>
+  <p>Manage books, issue books and handle student queues easily.</p>
+  <h3>Total Books: <span id="total">0</span></h3>
+  <h3>Available Books: <span id="available">0</span></h3>
+  <h3>Issued Books: <span id="issued">0</span></h3>
+</section>
+
+<section class="card" id="add">
+  <h2>➕ Add New Book</h2>
+
+  <input id="bookName" placeholder="Enter book name">
+  <input id="author" placeholder="Enter author name">
+
+  <button onclick="addBook()">Add Book</button>
+</section>
+
+<section class="card" id="books">
+  <h2>📖 Book List</h2>
+
+  <input id="search" placeholder="Search book..."
+         oninput="showBooks()">
+
+  <div style="overflow-x:auto">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Book</th>
+          <th>Author</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="bookTable"></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card" id="stack">
+  <h2>📚 Stack (LIFO)</h2>
+  <p>Last In, First Out: The last added book is removed first.</p>
+
+  <button onclick="popBook()">Pop / Remove Last Book</button>
+  <ol id="stackList"></ol>
+</section>
+
+<section class="card" id="queue">
+  <h2>👥 Student Queue (FIFO)</h2>
+  <p>First In, First Out: The first student in line is served first.</p>
+
+  <input id="studentName" placeholder="Enter student name">
+  <input id="queueBook" placeholder="Enter required book name">
+
+  <button onclick="joinQueue()">Join Queue</button>
+  <button onclick="serveStudent()">Serve Next Student</button>
+
+  <ol id="queueList"></ol>
+</section>
+
+</div>
+
+<footer>
+  <p>Library Management System | DSA Project</p>
+</footer>
+
+<script>
+let books = JSON.parse(
+  localStorage.getItem("libraryBooks") || "[]"
+);
+
+let queue = JSON.parse(
+  localStorage.getItem("libraryQueue") || "[]"
+);
+
+let nextId = books.reduce(
+  (max, book) => Math.max(max, book.id), 0
+) + 1;
+
+function saveData() {
+  localStorage.setItem("libraryBooks", JSON.stringify(books));
+  localStorage.setItem("libraryQueue", JSON.stringify(queue));
+}
+
+function addBook() {
+  let name = document.getElementById("bookName").value.trim();
+  let author = document.getElementById("author").value.trim();
+
+  if (!name || !author) {
+    alert("Please enter book name and author name.");
+    return;
+  }
+
+  books.push({
+    id: nextId++,
+    name: name,
+    author: author,
+    issued: false
+  });
+
+  document.getElementById("bookName").value = "";
+  document.getElementById("author").value = "";
+
+  saveData();
+  render();
+
+  alert("Book added successfully!");
+}
+
+function showBooks() {
+  let search = document.getElementById("search").value.toLowerCase();
+
+  let result = books.filter(book =>
+    book.name.toLowerCase().includes(search) ||
+    book.author.toLowerCase().includes(search)
+  );
+
+  document.getElementById("bookTable").innerHTML =
+    result.map(book => `
+      <tr>
+        <td>${book.id}</td>
+        <td>${escapeHTML(book.name)}</td>
+        <td>${escapeHTML(book.author)}</td>
+        <td class="status">
+          ${book.issued ? "Issued" : "Available"}
+        </td>
+        <td>
+          ${
+            book.issued
+            ? `<button onclick="returnBook(${book.id})">Return</button>`
+            : `<button onclick="issueBook(${book.id})">Issue</button>`
+          }
+        </td>
+      </tr>
+    `
